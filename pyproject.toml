@@ -1,0 +1,32 @@
+[project]
+name = "infra-review-cli"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "rachealkuranchie",email = "racheal.kuranchie@ic.africa"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3 (>=1.39.11,<2.0.0)",
+    "google-generativeai (>=0.8.5,<0.9.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "markdown-it-py (>=3.0.0,<4.0.0)",
+    "questionary (>=2.1.0,<3.0.0)",
+    "openai (>=1.97.1,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "infra_review_cli", from = "src"}]
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+cli = "infra_review_cli.adapters.cli.cli:main"
+test = "pytest:main"

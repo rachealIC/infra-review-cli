@@ -1,0 +1,23 @@
+
+version: '3.8'
+
+services:
+  kener:
+    image: rajnandan1/kener:latest
+    container_name: kener
+    env_file: .env
+    environment:
+      TZ: Etc/UTC
+      KENER_SECRET_KEY: ${KENER_SECRET_KEY}
+    ports:
+      - '3000:3000/tcp'
+    volumes:
+      - data:/app/database
+      - $(pwd)/uploads:/app/uploads
+    # read_only: true
+    restart: unless-stopped
+
+
+volumes:
+  data:
+    name: kener_db
