@@ -57,7 +57,7 @@ def format_as_html(findings, logo_url=None, custom_colors=None):
         '--secondary-text-color': '#002856',
         '--card-bg-color': '#ffffff',
         '--card-border-color': '#dee2e6',
-        '--header-bg-color': '#343a40',
+        '--header-bg-color': '#002856',
         '--header-text-color': '#ffffff',
         '--accent-color': '#002856',
         '--hover-color': '#f1f3f5',
@@ -175,7 +175,7 @@ def format_as_html(findings, logo_url=None, custom_colors=None):
                 margin-bottom: 2rem;
             }}
             .summary-item {{
-                background-color: var(--card-bg-color);
+                background-color: var(--accent-color);
                 border: 1px solid var(--card-border-color);
                 border-radius: 8px;
                 padding: 1.5rem;
