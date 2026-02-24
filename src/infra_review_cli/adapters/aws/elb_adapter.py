@@ -1,72 +1,92 @@
 # src/infra_review_cli/adapters/aws/elb_adapter.py
+"""
+AWS ELB adapter — fetches data for unused load balancer check.
+"""
 
 import boto3
-from datetime import datetime, timedelta
-from src.infra_review_cli.core.checks.check_unused_elb import check_unused_elb
+from datetime import datetime, timedelta, timezone
+from botocore.exceptions import ClientError
+
+from infra_review_cli.core.checks.elb import check_unused_elb
 
 
-def fetch_elb_usage(region: str) -> list:
+def fetch_elb_findings(region: str) -> list:
+    """
+    Fetches all ELBs (ALB/NLB), gets their request counts and healthy target counts,
+    and returns findings.
+    """
     elbv2 = boto3.client("elbv2", region_name=region)
     cw = boto3.client("cloudwatch", region_name=region)
-
-    findings_input = []
+    elbs_data = []
 
     try:
-        # 1. Get all load balancers
-        response = elbv2.describe_load_balancers()
-        load_balancers = response["LoadBalancers"]
+        paginator = elbv2.get_paginator("describe_load_balancers")
+        for page in paginator.paginate():
+            for lb in page["LoadBalancers"]:
+                lb_arn = lb["LoadBalancerArn"]
+                lb_name = lb["LoadBalancerName"]
+                lb_type = lb["Type"]
 
+                # 1. Get Healthy Target Count
+                healthy_count = 0
+                try:
+                    target_groups = elbv2.describe_target_groups(LoadBalancerArn=lb_arn)["TargetGroups"]
+                    for tg in target_groups:
+                        health = elbv2.describe_target_health(TargetGroupArn=tg["TargetGroupArn"])
+                        healthy_count += sum(
+                            1 for h in health["TargetHealthDescriptions"]
+                            if h["TargetHealth"]["State"] == "healthy"
+                        )
+                except ClientError:
+                    pass
 
-
-        for lb in load_balancers:
-            name = lb["LoadBalancerName"]
-            arn = lb["LoadBalancerArn"]
-            lb_type = lb["Type"]
-
-            # 2. Get healthy targets count
-            target_health_count = 0
-            try:
-                target_groups = elbv2.describe_target_groups(LoadBalancerArn=arn)["TargetGroups"]
-                for tg in target_groups:
-                    health = elbv2.describe_target_health(TargetGroupArn=tg["TargetGroupArn"])
-                    target_health_count += sum(1 for t in health["TargetHealthDescriptions"]
-                                               if t["TargetHealth"]["State"] == "healthy")
-            except Exception as e:
-                print(f"⚠️ Error checking target health for {name}: {e}")
-
-            # 3. Get request count from CloudWatch (7 days)
-            end = datetime.utcnow()
-            start = end - timedelta(days=7)
-            try:
-                metrics = cw.get_metric_statistics(
-                    Namespace="AWS/ApplicationELB",
-                    MetricName="RequestCount",
-                    Dimensions=[{"Name": "LoadBalancer", "Value": arn.split(":loadbalancer/")[1]}],
-                    StartTime=start,
-                    EndTime=end,
-                    Period=86400,
-                    Statistics=["Sum"]
-                )
-
-                # Sum the request counts from the datapoints
-
-                datapoints = metrics.get("Datapoints", [])
-                request_count = int(sum(dp["Sum"] for dp in datapoints)) if datapoints else 0
-
-            except Exception as e:
-                print(f"⚠️ Error fetching RequestCount for {name}: {e}")
+                # 2. Get Request Count from CloudWatch (Last 7 days)
                 request_count = 0
+                try:
+                    metric_name = "RequestCount" if lb_type == "application" else "ProcessedBytes"
+                    namespace = "AWS/ApplicationELB" if lb_type == "application" else "AWS/NetworkELB"
+                    dimension_name = "LoadBalancer"
+                    
+                    # ALB/NLB dimensions in Cloudwatch use the suffix of the ARN
+                    short_arn = lb_arn.split("/", 1)[1] if "/" in lb_arn else lb_arn
 
-            findings_input.append({
-                "Name": name,
-                "Type": lb_type,
-                "LoadBalancerArn": arn,
-                "RequestCount": request_count,
-                "HealthyTargetCount": target_health_count
-            })
+                    stats = cw.get_metric_statistics(
+                        Namespace=namespace,
+                        MetricName=metric_name,
+                        Dimensions=[{"Name": dimension_name, "Value": short_arn}],
+                        StartTime=datetime.now(timezone.utc) - timedelta(days=7),
+                        EndTime=datetime.now(timezone.utc),
+                        Period=604800,  # 7 days
+                        Statistics=["Sum"],
+                    )
+                    datapoints = stats.get("Datapoints", [])
+                    request_count = sum(dp.get("Sum", 0) for dp in datapoints)
+                except ClientError:
+                    pass
 
-    except Exception as e:
-        print(f"❌ Error listing load balancers: {e}")
+                elbs_data.append({
+                    "LoadBalancerArn": lb_arn,
+                    "Name": lb_name,
+                    "Type": lb_type,
+                    "RequestCount": request_count,
+                    "HealthyTargetCount": healthy_count,
+                })
+
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "AccessDenied":
+            print("⚠️  ELB check skipped — missing permission: elasticloadbalancing:DescribeLoadBalancers")
+        else:
+            print(f"⚠️  ELB: {e}")
         return []
 
-    return check_unused_elb(findings_input, region)
+    return check_unused_elb(elbs_data, region)
+
+
+def fetch_alb_dns_names(region: str) -> list[str]:
+    """Returns DNS names of all Application Load Balancers (used for CloudFront check)."""
+    elbv2 = boto3.client("elbv2", region_name=region)
+    try:
+        lbs = elbv2.describe_load_balancers()["LoadBalancers"]
+        return [lb["DNSName"] for lb in lbs if lb["Type"] == "application"]
+    except ClientError:
+        return []

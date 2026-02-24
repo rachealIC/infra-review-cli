@@ -1,128 +1,97 @@
+# 🛠 Infra Review CLI
 
-# Infra Review CLI
-
-Infra Review CLI is a command-line tool for scanning AWS infrastructure and 
-identifying common issues across services like EC2, EBS, S3, ELB, 
-and ECS. It surfaces security gaps, performance drifts, underutilized 
-resources, and cost optimization opportunities — all with AI-powered
-remediation suggestions and formatting options for reporting.
-
-````
+**Infra Review CLI** is a professional, high-fidelity AWS infrastructure scanner designed to audit your cloud environment against the **AWS Well-Architected Framework**. It combines deep infrastructure inspection with **AI-powered intelligence** to provide actionable remediation steps, cost-saving recommendations, and executive-level reporting.
 
 ---
 
-## Features
+## 🌟 Key Features
 
-- Scan for:
-  - Underutilized EC2 instances
-  - Unattached EBS volumes
-  - Publicly accessible S3 buckets
-  - Unassociated Elastic IPs
-  - Unused Load Balancers
-  - ECS services not using the latest task definitions
-- Identify findings across AWS Well-Architected Pillars
-- Estimate potential monthly savings
-- Auto-generate remediation steps using AI (Gemini/OpenAI fallback)
-- Generate reports in text, JSON, or HTML
-- Interactive CLI or flag-based automation support
+- **✅ 5-Pillar Well-Architected Audit:** 20+ comprehensive checks across Security, Cost, Reliability, Performance, and Operational Excellence.
+- **🧠 AI-Powered Insights:** Automatically generates executive summaries and technical remediation steps using **Claude-3.5**, **Gemini-2.0**, or **GPT-4o**.
+- **📊 Advanced Scoring:** Get a weighted health score (0-100) for each pillar and your overall infrastructure.
+- **🎨 Premium Reporting:** Stakeholder-ready HTML dashboards with Tailwind CSS styling and mobile-responsive design.
+- **☁️ Multi-Provider Ready:** Built with a provider-agnostic core, ready to extend to GCP and Azure.
+- **🚀 Modern UX:** Interactive CLI with real-time progress bars, color-coded summaries, and interactive prompts.
 
 ---
 
-## Installation
+## 🚀 Quick Start
 
-Install dependencies using [Poetry](https://python-poetry.org):
+### Prerequisites
+- Python 3.11+
+- [Poetry](https://python-poetry.org/)
+- AWS Credentials configured in your environment
 
+### Installation
 ```bash
+git clone https://github.com/rachealIC/infra-review-cli.git
+cd infra-review-cli
 poetry install
-````
+```
 
-Make sure your environment has AWS credentials set up (`~/.aws/credentials` or `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`).
-
----
-
-## Usage
-
-### Interactive Mode
-
+### Basic Usage
 ```bash
-poetry run python src/infra_review_cli/main.py
-```
+# Run an interactive scan (Guided setup)
+poetry run cli check aws --interactive
 
-You’ll be guided through:
+# Quick scan with HTML output
+poetry run cli check aws --format html
 
-* Choosing a service (EC2, S3, ECS, ELB, etc.)
-* Setting thresholds like CPU % or EBS age
-* Selecting AWS region
-* Choosing output format (text, JSON, HTML)
-* Optionally saving to a report file
-
----
-
-### Flag-Based Mode (Coming Soon)
-
-```bash
-poetry run cli check aws --region us-east-1 --format html --output report.html
+# Targeted scan for specific pillars
+poetry run cli check aws --pillar Security --pillar Cost
 ```
 
 ---
 
-## Output Formats
+## 🛡️ Supported Checks
 
-* **Text**: Plain, human-readable output in the terminal
-* **JSON**: Machine-readable output for automation
-* **HTML**: Styled report suitable for sharing or archiving
+| Service | Category | Description |
+| :--- | :--- | :--- |
+| **IAM** | Security | MFA enforcement, Root account activity, Access key rotation |
+| **S3** | Security | Public bucket discovery, Policy/ACL audit, Versioning status |
+| **VPC** | Security | Insecure security group rules (SSH/RDP/DB ports exposed) |
+| **EC2** | Cost/Perf | Rightsizing (CPU/Memory), ASG coverage, Orphaned EBS/EIPs |
+| **RDS** | Reliability | Multi-AZ status, Automated backup retention policy |
+| **ECS** | Perf/Cost | Task definition drift, Service scaling, Root container audit |
+| **CloudFront**| Performance| WAF coverage, Public origin protection |
+| **Lambda** | Operation | Static secret detection in environment variables |
 
 ---
 
-## AI Integration
+## 🏗️ Architecture
 
-Infra Review CLI uses Gemini (via Google Generative AI) or OpenAI to generate:
-
-* Suggested remediation steps
-* Estimated monthly savings (for cost optimization findings)
-
-You can configure API keys via environment variables:
-
-```bash
-export GEMINI_API_KEY="your-google-key"
-export OPENAI_API_KEY="your-openai-key"
+```mermaid
+graph TD
+    CLI[Modern CLI - Click/Rich] --> Registry[Provider Registry]
+    Registry --> AWS[AWS Provider]
+    AWS --> Adapters[AWS Adapters - Boto3]
+    Adapters --> Checks[Check Engine - 5 Pillars]
+    Checks --> AI[LLM Client - Claude/Gemini/OpenAI]
+    AI --> Logic{Logic & Remediation}
+    Logic --> Result[ScanResult Model]
+    Result --> Output[Formatters - HTML/JSON/Text]
 ```
 
 ---
 
-## Project Structure
+## ⚙️ Configuration
 
-```
-infra_review_cli/
-├── adapters/         # AWS integrations, CLI adapter
-├── core/             # Checks, enums, models, formatters
-├── ai/               # Gemini/OpenAI fallback logic
-├── reports/          # Summary + HTML/console views
-├── main.py           # CLI entry point
-```
+Configure the tool via environment variables or a `.env` file:
 
----
-
-## Supported Checks
-
-| Check                                | Service | Pillar                 |
-| ------------------------------------ | ------- | ---------------------- |
-| EC2 underutilization                 | EC2     | Cost Optimization      |
-| Unattached volumes                   | EBS     | Cost Optimization      |
-| Unassociated Elastic IPs             | EC2     | Cost Optimization      |
-| Public S3 buckets                    | S3      | Security               |
-| Unused Load Balancers                | ELB     | Cost Optimization      |
-| ECS not using latest task definition | ECS     | Performance Efficiency |
+| Variable | Description |
+| :--- | :--- |
+| `ANTHROPIC_API_KEY` | (Optional) Primary AI for remediation |
+| `GEMINI_API_KEY` | (Optional) Fallback AI |
+| `OPENAI_API_KEY` | (Optional) Fallback AI |
+| `AWS_PROFILE` | AWS credentials profile to use |
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to add new checks or providers.
 
 ---
 
-## License
-
-MIT License
-
-
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

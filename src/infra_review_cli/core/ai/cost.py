@@ -1,5 +1,5 @@
-from src.infra_review_cli.core.ai.llm_client import call_gemini, call_openai
-from src.infra_review_cli.core.utility import extract_number
+from infra_review_cli.core.ai.llm_client import call_ai
+from infra_review_cli.utils.utility import extract_number
 
 
 def estimate_savings(resource_type: str, usage: str, region: str, instance_id: str = "") -> float:
@@ -13,14 +13,11 @@ def estimate_savings(resource_type: str, usage: str, region: str, instance_id: s
     Respond with just the dollar amount as a number. No extra text.
     """
 
-    try:
-        return float(extract_number(call_gemini(prompt)))
-    except Exception as e:
-        print("⚠️ Gemini failed:", e)
-
-    try:
-        return float(extract_number(call_openai(prompt)))
-    except Exception as e:
-        print("⚠️ OpenAI failed:", e)
+    result = call_ai(prompt)
+    if result:
+        try:
+            return float(extract_number(result))
+        except (ValueError, TypeError):
+            pass
 
     return 10.0  # fallback

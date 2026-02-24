@@ -1,9 +1,6 @@
-# src/infra_review_cli/core/checks/vpc.py
-
-from src.infra_review_cli.core.models import Finding, Pillar, Severity, Effort
-from src.infra_review_cli.core.ai.remediation import generate_ai_remediation
-
-from src.infra_review_cli.core.utility import generate_finding_id
+from infra_review_cli.core.models import Finding, Pillar, Severity, Effort
+from infra_review_cli.core.ai.remediation import generate_ai_remediation
+from infra_review_cli.utils.utility import generate_finding_id
 
 
 def check_insecure_sg_rules(sg: dict, region: str) -> list[Finding]:
@@ -46,7 +43,7 @@ def check_insecure_sg_rules(sg: dict, region: str) -> list[Finding]:
                     f"This increases the attack surface and should be restricted."
                 )
 
-                remediation = generate_ai_remediation(headline, description)
+                # remediation = generate_ai_remediation(headline, description)
 
                 findings.append(Finding(
                     finding_id=generate_finding_id("sec-vpc-001", sg["GroupId"], region),
@@ -58,7 +55,7 @@ def check_insecure_sg_rules(sg: dict, region: str) -> list[Finding]:
                     estimated_savings=0.0,
                     headline=headline,
                     detailed_description=description,
-                    remediation_steps=remediation
+                    remediation_steps="	Restrict access to trusted IP ranges."
                 ))
 
     return findings
