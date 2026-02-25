@@ -27,6 +27,13 @@ from infra_review_cli.adapters.aws.cloudwatch_adapter import fetch_cloudwatch_al
 from infra_review_cli.adapters.aws.tagging_adapter import fetch_tagging_findings
 from infra_review_cli.adapters.aws.lambda_adapter import fetch_lambda_findings
 from infra_review_cli.adapters.aws.cloudfront_adapter import fetch_cloudfront_findings
+from infra_review_cli.adapters.aws.sustainability_adapter import (
+    fetch_graviton_usage_findings,
+    fetch_idle_always_on_findings,
+    fetch_lambda_memory_findings,
+    fetch_s3_lifecycle_findings,
+    fetch_unencrypted_ebs_findings,
+)
 
 
 class AWSProvider(BaseCloudProvider):
@@ -73,6 +80,7 @@ class AWSProvider(BaseCloudProvider):
         if dry_run:
             return ScanResult(provider="aws", region=self.region)
 
+        scan_start = datetime.now(timezone.utc)
         findings = []
         # Track which pillars were actually checked for scoring
         checks_run_per_pillar = {p: 0 for p in Pillar}
@@ -95,6 +103,11 @@ class AWSProvider(BaseCloudProvider):
             ("Elastic IPs", fetch_unassociated_eips, Pillar.COST),
             ("EBS Volumes", fetch_ebs_findings, Pillar.COST),
             ("Load Balancers", fetch_elb_findings, Pillar.COST),
+            ("Graviton Adoption", fetch_graviton_usage_findings, Pillar.SUSTAINABILITY),
+            ("S3 Lifecycle Policies", fetch_s3_lifecycle_findings, Pillar.SUSTAINABILITY),
+            ("Idle Always-On Resources", fetch_idle_always_on_findings, Pillar.SUSTAINABILITY),
+            ("Lambda Memory Tuning", fetch_lambda_memory_findings, Pillar.SUSTAINABILITY),
+            ("Unencrypted EBS Volumes", fetch_unencrypted_ebs_findings, Pillar.SUSTAINABILITY),
         ]
 
         total_steps = len(steps) + 2  # +2 for S3 Public and CloudFront (special handling)
@@ -111,8 +124,21 @@ class AWSProvider(BaseCloudProvider):
                 continue
                 
             res = func(self.region)
-            findings.extend(res)
-            checks_run_per_pillar[pillar] += 1
+            scan_ok = True
+            findings_out = res
+
+            # Sustainability adapter functions return (findings, scanned_ok)
+            # so we can avoid marking pillars as scanned when calls fail.
+            if (
+                isinstance(res, tuple)
+                and len(res) == 2
+                and isinstance(res[1], bool)
+            ):
+                findings_out, scan_ok = res
+
+            findings.extend(findings_out)
+            if scan_ok:
+                checks_run_per_pillar[pillar] += 1
 
         # -------------------------------------------------------------------
         # Specialized Steps (sharing data)
@@ -161,4 +187,7 @@ class AWSProvider(BaseCloudProvider):
                 region=result.region
             )
 
+        result.scan_duration_seconds = round(
+            (datetime.now(timezone.utc) - scan_start).total_seconds(), 2
+        )
         return result

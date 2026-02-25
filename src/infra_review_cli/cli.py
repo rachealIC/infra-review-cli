@@ -44,12 +44,12 @@ def display_rich_summary(result: ScanResult):
     console.print("\n")
     console.print(Panel(
         f"[bold white]Scan Complete for Account:[/][bold cyan] {result.account_id}[/] [dim]({result.region})[/]\n"
-        f"[bold white]Overall Health Score:[/] [bold {result.overall_score >= 70 and 'green' or 'red'}]{result.overall_score}/100[/]",
+        f"[bold white]Overall Score:[/] [bold {result.overall_score >= 70 and 'green' or 'red'}]{result.overall_score}/100[/]",
         title="[bold blue]Infra Review Summary[/]",
         expand=False,
     ))
 
-    table = Table(title="Pillar Health Scores", box=None, padding=(0, 2))
+    table = Table(title="Pillar Scores", box=None, padding=(0, 2))
     table.add_column("Pillar", style="cyan")
     table.add_column("Score", justify="right")
     table.add_column("Status", justify="center")

@@ -111,12 +111,17 @@ def overall_health_score(pillar_scores: dict[str, PillarScore]) -> float:
         "Operational Excellence": 1.5,
         "Performance Efficiency": 1.0,
         "Cost Optimization": 1.0,
+        "Sustainability": 1.0,
     }
 
     total_weight = 0.0
     weighted_sum = 0.0
 
     for pillar_name, ps in pillar_scores.items():
+        # Pillars with zero checks were not scanned for this run; keep them visible
+        # in reporting but exclude them from overall score math.
+        if ps.total_checks_run == 0:
+            continue
         weight = pillar_weights.get(pillar_name, 1.0)
         weighted_sum += ps.score * weight
         total_weight += weight

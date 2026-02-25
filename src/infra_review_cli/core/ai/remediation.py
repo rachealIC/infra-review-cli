@@ -4,7 +4,7 @@ AI-powered remediation step generator and executive summary generator.
 All functions return None gracefully if no AI provider is available.
 """
 
-from infra_review_cli.core.ai.llm_client import call_ai
+from .llm_client import call_ai
 
 
 def generate_ai_remediation(headline: str, description: str) -> str | None:

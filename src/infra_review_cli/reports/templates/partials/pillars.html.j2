@@ -1,0 +1,48 @@
+<section class="section-block" aria-labelledby="pillar-overview-title">
+    <div class="section-head">
+        <h2 id="pillar-overview-title" class="section-title">Pillar Overview</h2>
+        <p class="section-note">Select a pillar to jump to matching findings.</p>
+    </div>
+
+    <div class="pillar-grid stagger-load" id="pillar-grid">
+        {% for p in pillars %}
+        <article class="pillar-card surface-card {% if not p.scanned %}pillar-card--unscanned{% endif %}" data-pillar="{{ p.slug }}" onclick="scrollToPillar('{{ p.name }}')"
+            role="button" tabindex="0" onkeypress="if(event.key === 'Enter'){scrollToPillar('{{ p.name }}')}" aria-label="Filter by {{ p.name }}">
+            <div class="pillar-card__top">
+                <span class="pillar-card__name">{{ p.name }}</span>
+                <span class="pillar-card__status {% if p.scanned %}pillar-badge-{{ p.slug }}{% else %}pillar-badge-neutral{% endif %} pillar-status--{{ p.status_tone }}">{{ p.status }}</span>
+            </div>
+
+            <div class="pillar-card__score-row">
+                <span class="pillar-card__score {% if not p.scanned %}pillar-card__score--na{% endif %}">{{ p.score_display }}</span>
+                {% if p.scanned %}
+                <span class="pillar-card__score-max">/100</span>
+                {% endif %}
+                <button class="tooltip-trigger tooltip-trigger--subtle" type="button" onclick="event.stopPropagation()"
+                    aria-label="Pillar score explanation"
+                    data-tooltip="{% if p.scanned %}Score based on {{ p.total_checks_run }} checks across this pillar{% else %}No checks were executed for this pillar in this scan.{% endif %}">
+                    ?
+                </button>
+            </div>
+
+            <div class="pillar-progress" role="progressbar" aria-valuenow="{{ p.score if p.scanned else 0 }}" aria-valuemin="0" aria-valuemax="100">
+                <div class="pillar-progress__fill" data-width="{{ p.score if p.scanned else 0 }}%"></div>
+            </div>
+
+            <div class="pillar-card__chips">
+                <span class="metric-chip">Checks run: {{ p.total_checks_run }}</span>
+                <span class="metric-chip">Findings: {{ p.findings_count }}</span>
+                {% if p.critical_count > 0 or p.high_count > 0 %}
+                <span class="metric-chip metric-chip--risk">{{ p.critical_count + p.high_count }} At Risk</span>
+                {% endif %}
+                {% if not p.scanned %}
+                <span class="metric-chip">Not Scanned</span>
+                {% endif %}
+            </div>
+            {% if p.slug == 'sustainability' and not p.scanned %}
+            <p class="pillar-card__note">Sustainability checks require additional AWS permissions. See README for required IAM policy.</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+</section>

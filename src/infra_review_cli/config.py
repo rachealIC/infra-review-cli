@@ -119,4 +119,5 @@ PILLAR_DISPLAY_ORDER: list[str] = [
     "Operational Excellence",
     "Performance Efficiency",
     "Cost Optimization",
+    "Sustainability",
 ]

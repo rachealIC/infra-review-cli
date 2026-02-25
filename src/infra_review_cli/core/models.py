@@ -115,6 +115,7 @@ class ScanResult:
     scan_timestamp: str = ""
     provider: str = "aws"
     executive_summary: str = ""
+    scan_duration_seconds: Optional[float] = None
 
     @property
     def total_savings(self) -> float:

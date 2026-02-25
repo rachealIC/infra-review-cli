@@ -1,0 +1,23 @@
+{# 
+  report.html.j2 — Main report entry point
+  Extends base.html.j2 which handles layout, assets, and partials.
+
+  Variables injected by html_report.py render_html_report():
+    account_id      str   — AWS account ID
+    region          str   — AWS region scanned
+    generated_at    str   — ISO timestamp of scan
+    report_id       str   — unique report identifier (IR-ACCOUNT-YYYYMMDD-HHMMSS)
+    app_version     str   — Infra Review CLI version
+    scan_duration   str   — scan duration label (if available)
+    overall_score   float — 0-100 aggregate infrastructure score
+    monthly_savings float — estimated monthly savings in USD
+    ai_summary      str   — AI-generated executive summary text
+    pillars         list  — [{ name, score, findings_count, critical_count, status }]
+    findings        list  — [{ resource, region, pillar, title, 
+                               description, severity, remediation }]
+    findings_json   str   — JSON string of findings for JS
+    pillars_json    str   — JSON string of pillars for JS
+    inline_css      str   — injected automatically, do not pass manually
+    inline_js       str   — injected automatically, do not pass manually
+#}
+{% extends "base.html.j2" %}

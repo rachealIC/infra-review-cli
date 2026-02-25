@@ -1,4 +1,4 @@
-from infra_review_cli.core.ai.llm_client import call_ai
+from .llm_client import call_ai
 from infra_review_cli.utils.utility import extract_number
 
 

@@ -1,0 +1,52 @@
+<section class="score-guide-section" aria-labelledby="score-guide-title">
+    <div class="score-guide__toggle-row">
+        <button id="score-guide-toggle" class="score-guide__toggle" type="button" onclick="toggleScoringGuide()"
+            aria-expanded="false" aria-controls="score-guide-panel">
+            <span>How is this scored?</span>
+            <span id="score-guide-chevron" class="score-guide__chevron">↓</span>
+        </button>
+    </div>
+
+    <div id="score-guide-panel" class="score-guide__panel" aria-hidden="true">
+        <h3 id="score-guide-title">How your score is calculated</h3>
+        <p>
+            Each pillar starts at 100. Points are deducted for every failed check based on severity.
+            Your overall score is the weighted average across all pillars.
+        </p>
+
+        <table class="score-guide-table" aria-label="Severity deduction table">
+            <thead>
+                <tr>
+                    <th>Severity</th>
+                    <th>Points Deducted</th>
+                    <th>What it means</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Critical</td>
+                    <td>-25 pts</td>
+                    <td>Immediate action required</td>
+                </tr>
+                <tr>
+                    <td>High</td>
+                    <td>-15 pts</td>
+                    <td>Address within days</td>
+                </tr>
+                <tr>
+                    <td>Medium</td>
+                    <td>-8 pts</td>
+                    <td>Address within weeks</td>
+                </tr>
+                <tr>
+                    <td>Low</td>
+                    <td>-3 pts</td>
+                    <td>Address when possible</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="score-guide__note">Pillars with 0 checks run (NOT SCANNED) are excluded from the overall score.</p>
+        <p class="score-guide__note">A score of 75+ is Good · 50-74 is Needs Attention · Below 50 is At Risk.</p>
+    </div>
+</section>

@@ -1,0 +1,46 @@
+<section class="hero-section animate-fade-in">
+    <div class="hero-main">
+        <div class="hero-copy">
+            <h1 class="hero-title">Infra Review Report</h1>
+            <div class="score-help-inline">
+                <span>Scores come from checks run, not resource totals.</span>
+                <button class="tooltip-trigger" type="button"
+                    aria-label="Score explanation"
+                    data-tooltip="A pillar starts at 100 and deducts points by severity: Critical -25, High -15, Medium -8, Low -3.">
+                    ?
+                </button>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <article class="kpi-card glass-card" aria-label="Overall Score">
+                <div class="kpi-ring-wrap">
+                    <svg class="kpi-ring" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle class="kpi-ring__track" stroke-width="8" fill="transparent" r="40" cx="50" cy="50" />
+                        <circle class="progress-ring__circle" id="overall-ring" stroke-width="8" stroke-linecap="round"
+                            fill="transparent" r="40" cx="50" cy="50" />
+                    </svg>
+                    <span class="kpi-value" id="overall-score-text">0</span>
+                </div>
+                <span class="kpi-label">Overall Score</span>
+            </article>
+
+            <article class="kpi-card glass-card" aria-label="Estimated Monthly Savings">
+                <div class="kpi-value-row">
+                    <span class="kpi-value kpi-value--savings" id="total-savings-text">$0.00</span>
+                </div>
+                <span class="kpi-label">Estimated Monthly Savings</span>
+            </article>
+        </div>
+    </div>
+
+    <article class="ai-summary-card glass-card animate-fade-in" style="animation-delay: 0.12s;">
+        <div class="ai-summary-card__head">
+            <h2 class="ai-summary-card__title">Executive Summary</h2>
+            <span class="ai-summary-card__tag">AI Assisted</span>
+        </div>
+        <div class="ai-summary-card__body" id="ai-summary-content">
+            {{ ai_summary }}
+        </div>
+    </article>
+</section>

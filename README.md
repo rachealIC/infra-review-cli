@@ -58,6 +58,23 @@ poetry run cli check aws --pillar Security --pillar Cost
 
 ---
 
+## 🔐 Sustainability Check IAM Permissions
+
+To fully run Sustainability pillar checks, allow these read-only permissions:
+
+- `ec2:DescribeInstances`
+- `ec2:DescribeVolumes`
+- `s3:ListAllMyBuckets`
+- `s3:GetLifecycleConfiguration`
+- `lambda:ListFunctions`
+- `cloudwatch:GetMetricStatistics`
+- `logs:StartQuery`
+- `logs:GetQueryResults`
+
+If these are missing, Sustainability can appear as **NOT SCANNED**.
+
+---
+
 ## 🏗️ Architecture
 
 ```mermaid

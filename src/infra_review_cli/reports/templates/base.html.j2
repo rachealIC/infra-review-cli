@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infra Review — AWS Audit Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'light' || savedTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                    return;
+                }
+                const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+                document.documentElement.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
+    <style>
+        {{ inline_css | safe }}
+
+        :root {
+            {% for p in pillars %}
+            --pillar-{{ p.slug }}: {{ p.color }};
+            {% endfor %}
+        }
+
+        {% for p in pillars %}
+        .pillar-badge-{{ p.slug }} {
+            background-color: {{ p.color }}18;
+            color: {{ p.color }};
+            border-color: {{ p.color }}55;
+        }
+
+        .pillar-card[data-pillar="{{ p.slug }}"] {
+            --pillar-accent: {{ p.color }};
+        }
+
+        .badge-pillar[data-pillar="{{ p.slug }}"] {
+            background-color: {{ p.color }}1a;
+            color: {{ p.color }};
+            border-color: {{ p.color }}4d;
+        }
+        {% endfor %}
+    </style>
+</head>
+
+<body>
+    {% include "partials/header.html.j2" %}
+
+    <main class="report-shell">
+        {% include "partials/hero.html.j2" %}
+        {% include "partials/scoring.html.j2" %}
+        {% include "partials/pillars.html.j2" %}
+        {% include "partials/findings.html.j2" %}
+    </main>
+
+    {% include "partials/print_report.html.j2" %}
+
+    {% include "partials/footer.html.j2" %}
+
+    {# SAFE INJECTION — Store large JSON in a non-executable script tag to avoid crashes #}
+    <script id="findings-raw" type="application/json">{{ findings_json | safe }}</script>
+    <script id="pillars-raw" type="application/json">{{ pillars_json | safe }}</script>
+
+    <script>
+        (function() {
+            try {
+                const findingsData = JSON.parse(document.getElementById('findings-raw').textContent);
+                const pillarsData = JSON.parse(document.getElementById('pillars-raw').textContent);
+
+                window.REPORT_DATA = {
+                    findings: findingsData,
+                    pillars: pillarsData,
+                    overallScore: {{ overall_score }},
+                    monthlySavings: {{ monthly_savings }},
+                    accountId: "{{ account_id }}",
+                    region: "{{ region }}",
+                    generatedAt: "{{ generated_at }}",
+                    reportId: "{{ report_id }}",
+                    appVersion: "{{ app_version }}",
+                    scanDuration: "{{ scan_duration }}",
+                };
+            } catch (e) {
+                console.error('Failed to parse report data:', e);
+                window.REPORT_DATA = {
+                    findings: [],
+                    pillars: [],
+                    overallScore: 0,
+                    monthlySavings: 0,
+                    accountId: "unknown",
+                    region: "unknown",
+                    generatedAt: "",
+                    reportId: "IR-UNKNOWN",
+                    appVersion: "0.0.0",
+                    scanDuration: "N/A",
+                };
+            }
+        })();
+    </script>
+
+    {# Extracted JS inlined at build time by html_report.py #}
+    <script>
+        {{ inline_js | safe }}
+    </script>
+</body>
+
+</html>
